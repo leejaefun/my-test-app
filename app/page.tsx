@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export default function BrickBreaker() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState("READY"); // READY, PLAYING, GAMEOVER
+  const [gameState, setGameState] = useState("READY");
 
   useEffect(() => {
     if (gameState !== "PLAYING") return;
@@ -14,6 +14,10 @@ export default function BrickBreaker() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // 배경 이미지 설정
+    const bgImage = new Image();
+    bgImage.src = "/2seo.JPG"; // public 폴더의 이미지 경로
 
     // 게임 설정
     let ballRadius = 8;
@@ -29,14 +33,14 @@ export default function BrickBreaker() {
     let rightPressed = false;
     let leftPressed = false;
 
-    // 벽돌 설정
-    const brickRowCount = 3;
-    const brickColumnCount = 5;
-    const brickWidth = 70;
-    const brickHeight = 20;
-    const brickPadding = 10;
+    // 벽돌 설정 (개수를 늘리기 위해 크기와 간격 조정)
+    const brickRowCount = 4;    // 행 늘림
+    const brickColumnCount = 8; // 열 늘림 (총 32개)
+    const brickWidth = 45;      // 벽돌 폭 줄임
+    const brickHeight = 15;
+    const brickPadding = 8;
     const brickOffsetTop = 30;
-    const brickOffsetLeft = 35;
+    const brickOffsetLeft = 30;
 
     const bricks: any[] = [];
     for (let c = 0; c < brickColumnCount; c++) {
@@ -57,7 +61,7 @@ export default function BrickBreaker() {
     };
 
     const mouseMoveHandler = (e: MouseEvent) => {
-      const relativeX = e.clientX - canvas.offsetLeft;
+      const relativeX = e.clientX - canvas.getBoundingClientRect().left;
       if (relativeX > 0 && relativeX < canvas.width) {
         paddleX = relativeX - paddleWidth / 2;
       }
@@ -88,15 +92,16 @@ export default function BrickBreaker() {
     function drawBall() {
       ctx!.beginPath();
       ctx!.arc(x, y, ballRadius, 0, Math.PI * 2);
-      ctx!.fillStyle = "#0095DD";
+      ctx!.fillStyle = "#FFD700"; // 공 색상을 눈에 띄게 변경 (골드)
       ctx!.fill();
+      ctx!.stroke();
       ctx!.closePath();
     }
 
     function drawPaddle() {
       ctx!.beginPath();
       ctx!.rect(paddleX, canvas!.height - paddleHeight, paddleWidth, paddleHeight);
-      ctx!.fillStyle = "#0095DD";
+      ctx!.fillStyle = "#ffffff";
       ctx!.fill();
       ctx!.closePath();
     }
@@ -111,7 +116,7 @@ export default function BrickBreaker() {
             bricks[c][r].y = brickY;
             ctx!.beginPath();
             ctx!.rect(brickX, brickY, brickWidth, brickHeight);
-            ctx!.fillStyle = "#0095DD";
+            ctx!.fillStyle = "rgba(0, 149, 221, 0.7)"; // 약간 투명한 파란색
             ctx!.fill();
             ctx!.closePath();
           }
@@ -120,7 +125,12 @@ export default function BrickBreaker() {
     }
 
     function draw() {
-      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+      // 배경 이미지 그리기 (지우기 대신 이미지를 덮어씌움)
+      ctx!.drawImage(bgImage, 0, 0, canvas!.width, canvas!.height);
+      // 배경을 약간 어둡게 처리하여 게임 가독성 높임
+      ctx!.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
+
       drawBricks();
       drawBall();
       drawPaddle();
@@ -144,7 +154,11 @@ export default function BrickBreaker() {
       requestAnimationFrame(draw);
     }
 
-    draw();
+    bgImage.onload = () => {
+      draw();
+    };
+    // 이미지가 이미 로드된 경우 대응
+    if (bgImage.complete) draw();
 
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
@@ -154,27 +168,29 @@ export default function BrickBreaker() {
   }, [gameState]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-4">
-      <h1 className="text-4xl font-bold mb-4">이서의 벽돌 부수기</h1>
-      <div className="mb-4 text-xl">Score: {score}</div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+      <h1 className="text-4xl font-bold mb-4">이서의 특별한 공간</h1>
+      <div className="mb-4 text-xl font-mono">Score: {score}</div>
 
-      <div className="relative border-4 border-white rounded-lg overflow-hidden bg-black">
-        <canvas ref={canvasRef} width={480} height={320} />
+      <div className="relative border-8 border-indigo-900 rounded-xl overflow-hidden shadow-2xl">
+        <canvas ref={canvasRef} width={480} height={320} className="block" />
 
         {gameState !== "PLAYING" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
-            <h2 className="text-2xl mb-4">{gameState === "GAMEOVER" ? "Game Over!" : "Ready?"}</h2>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+            <h2 className="text-3xl font-bold mb-6">
+              {gameState === "GAMEOVER" ? (score === 320 ? "🎉 축하합니다! 클리어!" : "Game Over") : "준비되셨나요?"}
+            </h2>
             <button
               onClick={() => { setScore(0); setGameState("PLAYING"); }}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-full font-bold transition"
+              className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-full font-black text-xl shadow-lg transition-transform hover:scale-105"
             >
-              {gameState === "GAMEOVER" ? "다시 시작" : "게임 시작"}
+              {gameState === "GAMEOVER" ? "다시 도전" : "게임 시작"}
             </button>
           </div>
         )}
       </div>
 
-      <p className="mt-6 text-gray-400">마우스나 화살표 키로 바를 움직이세요!</p>
+      <p className="mt-8 text-indigo-300 font-medium italic">"내 사진 뒤에 숨은 벽돌을 모두 깨뜨려보세요!"</p>
     </main>
   );
 }
