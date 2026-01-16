@@ -12,7 +12,7 @@ export default function Home() {
       <div className="relative w-64 h-64 mb-8 rounded-full overflow-hidden border-4 border-indigo-500 shadow-2xl shadow-indigo-500/50">
         {/* 아래 src="/my-photo.jpg" 부분을 본인이 넣은 파일명으로 꼭 바꿔주세요! */}
         <Image
-          src="/2seo.jpg"
+          src="/2seo.JPG"
           alt="이서의 대표 사진"
           fill
           className="object-cover"
